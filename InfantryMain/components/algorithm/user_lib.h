@@ -2,6 +2,9 @@
 #define USER_LIB_H
 #include "struct_typedef.h"
 
+#define HALF_ECD_RANGE 4096
+#define ECD_RANGE 8192
+
 typedef __packed struct
 {
     fp32 input;        // ‰»Î ˝æ›
