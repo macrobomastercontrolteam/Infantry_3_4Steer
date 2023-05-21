@@ -24,6 +24,10 @@
 #define CAN_CONTROL_ID_EXTEND 0x2ff
 #define STEER_MOTOR_COUNT     4
 
+#define HALF_ECD_RANGE 4096
+#define ECD_RANGE 8192
+#define MOTOR_ECD_TO_RAD 0.000766990394f // (2*PI)/8192
+
 typedef struct
 {
     int16_t  set_voltage;
