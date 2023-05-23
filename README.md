@@ -1,26 +1,16 @@
 # MacRM_Standard_2023
-McMaster Robomaster Standard Infantry Robot Code for 2023 Steering-wheel-chassis Model
+2023 McMaster Robomaster Standard **Infantry 3** Robot Code with Steering-wheel-chassis Mechanical Model
 
-Developed based on "RoboMaster competition robot 2020 self-assembly version A". Refer to user manuals posted on
-> "File download: [RoboMaster Competition Robot 2020 Self-Assembled Version A Type Related Documents](https://rm-static.djicdn.com/documents/26898/57bcb7163d7bd1575980335867998835.7z)"
+This is the code for Steering-Motor-Controller, which is supposed to receive CAN messages from [main control board](https://github.com/macrobomastercontrolteam/Infantry_1_4Mecanum) to control steering motors (GM6020) that are isolated from all other CAN devices in the robot.
 
-on 
-> RM's Official website: https://www.robomaster.com/zh-CN/resource/pages/announcement/1081.
+Developed based on [GM6020 Demo Code by DJI](https://www.robomaster.com/en-US/products/components/general/gm6020)
 
 # Mechanical Features
-- Steering motor chassis: four M6020 steering motors and four M3508 speed motors
+- Steering motor chassis: four GM6020 steering motors
 
 # Firmware Environment
 - InfantryMain controller: Type C Development Board
     - FreeRTOS
 - InfantrySteer controller: Type A Development Board
-    - Type C Board sends target encoder values (absolute angle) of steering motors to Type A Board with CAN ID 0x112;
-    - Type A Board controls steering motors with PID
-
-# Firmware Architecture
-Same architecture to 2019:
-Except a Type A Development Board is added to the system with CAN ID 0x112. This board only controls four steering motors on an isolated CAN bus.
-![image](https://user-images.githubusercontent.com/57267209/185773597-4cd07a38-2232-4443-a679-13531dbe4313.png)
-
-# Branches
-- test_no_ref: test all other features without referee system by ignoring ref errrors
+    - Type C Board sends target encoder values (absolute angle) of steering motors to Type A Board with **CAN ID 0x112**
+    - Type A Board controls steering motors with PID without responding back to Type C Board
