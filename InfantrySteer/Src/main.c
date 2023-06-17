@@ -76,6 +76,8 @@
 #define M6020_MOTOR_1_ANGLE_ECD_OFFSET 3742U
 #define M6020_MOTOR_2_ANGLE_ECD_OFFSET 5720U
 #define M6020_MOTOR_3_ANGLE_ECD_OFFSET 2827U
+
+#define CHASSIS_TEST_MODE 1
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -94,7 +96,16 @@ float abs_angle_pid_calc(pid_struct_t *pid, float target_ecd, float feedback_ecd
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+#if CHASSIS_TEST_MODE
+float feedback_ecd_float;
+float target_ecd_float;
+static void J_scope_pid_test(void)
+{
+  uint8_t motor_id = 0;
+  feedback_ecd_float = motor_info[motor_id].feedback_ecd - motor_info[motor_id].offset_ecd;
+  target_ecd_float = motor_info[motor_id].target_ecd;
+}
+#endif
 /* USER CODE END 0 */
 
 /**
@@ -149,8 +160,11 @@ int main(void)
     }
     /* send motor control message through can bus*/
     CAN_cmd_steer_motors(0, motor_info[0].set_voltage, motor_info[1].set_voltage, motor_info[2].set_voltage, motor_info[3].set_voltage);
-
     HAL_Delay(CHASSIS_STEER_MOTOR_CONTROL_TIME_MS);
+
+#if CHASSIS_TEST_MODE
+    J_scope_pid_test();
+#endif
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
