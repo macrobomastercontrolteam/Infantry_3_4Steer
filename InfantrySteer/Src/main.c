@@ -64,7 +64,7 @@
 #define CHASSIS_CONTROL_TIME_MS 2
 #define CHASSIS_STEER_MOTOR_CONTROL_TIME_MS (CHASSIS_CONTROL_TIME_MS / 2) // faster turning control
 
-#define M6020_MOTOR_ANGLE_PID_KP 92.0f
+#define M6020_MOTOR_ANGLE_PID_KP 80.0f
 #define M6020_MOTOR_ANGLE_PID_KI 1.5f
 #define M6020_MOTOR_ANGLE_PID_KD 1.5f
 // chassis 6020 max motor control voltage
