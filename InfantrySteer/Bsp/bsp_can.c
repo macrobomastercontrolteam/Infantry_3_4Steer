@@ -17,8 +17,8 @@
  
 #include "bsp_can.h"
 
-int16_t feedback_ecd1;
-int16_t target_ecd1;
+// int16_t feedback_ecd1;
+// int16_t target_ecd1;
 
 /* CAN send and receive ID */
 typedef enum
@@ -66,24 +66,24 @@ void can_user_init(void)
   HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
 }
 
-float loop_ecd_constrain_test(float Input)
-{
-  if (Input > HALF_ECD_RANGE)
-  {
-    while (Input > HALF_ECD_RANGE)
-    {
-      Input -= ECD_RANGE;
-    }
-  }
-  else if (Input < -HALF_ECD_RANGE)
-  {
-    while (Input < -HALF_ECD_RANGE)
-    {
-      Input += ECD_RANGE;
-    }
-  }
-  return Input;
-}
+// float loop_ecd_constrain_test(float Input)
+// {
+//   if (Input > HALF_ECD_RANGE)
+//   {
+//     while (Input > HALF_ECD_RANGE)
+//     {
+//       Input -= ECD_RANGE;
+//     }
+//   }
+//   else if (Input < -HALF_ECD_RANGE)
+//   {
+//     while (Input < -HALF_ECD_RANGE)
+//     {
+//       Input += ECD_RANGE;
+//     }
+//   }
+//   return Input;
+// }
 
 /**
   * @brief  can rx callback, get motor feedback info
@@ -109,7 +109,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
       // motor_info[index].torque_current = ((rx_data[4] << 8) | rx_data[5]);
       // motor_info[index].temperature    =   rx_data[6];
     }
-    feedback_ecd1 = loop_ecd_constrain_test((float)motor_info[0].feedback_ecd - (float)motor_info[0].offset_ecd);
+    // feedback_ecd1 = loop_ecd_constrain_test((float)motor_info[0].feedback_ecd - (float)motor_info[0].offset_ecd);
   }
   else if(hcan->Instance == CAN2)
   {
@@ -118,7 +118,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     {
       motor_info[index].target_ecd = ((rx_data[2*index] << 8) | rx_data[2*index+1]);
     }
-    target_ecd1 = loop_ecd_constrain_test(motor_info[0].target_ecd);
+    // target_ecd1 = loop_ecd_constrain_test(motor_info[0].target_ecd);
   }
 }
 
