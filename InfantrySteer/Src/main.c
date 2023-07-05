@@ -86,6 +86,10 @@
 #define M6020_MOTOR_3_ANGLE_ECD_OFFSET 2827U
 #endif
 
+#define CHASSIS_LOAD_SERVO_HALF_PERIOD 2000.0f
+#define CHASSIS_LOAD_SERVO_MIN_DUTY_CYCLE 1000.0f
+#define CHASSIS_LOAD_SERVO_MAX_DUTY_CYCLE 2000.0f
+
 #define CHASSIS_TEST_MODE 1
 /* USER CODE END PM */
 
@@ -94,6 +98,7 @@
 /* USER CODE BEGIN PV */
 extern moto_info_t motor_info[STEER_MOTOR_COUNT];
 pid_struct_t motor_pid[STEER_MOTOR_COUNT];
+extern uint8_t fLoadServoOn;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -169,6 +174,7 @@ int main(void)
     }
     /* send motor control message through can bus*/
     CAN_cmd_steer_motors(0, motor_info[0].set_voltage, motor_info[1].set_voltage, motor_info[2].set_voltage, motor_info[3].set_voltage);
+    chassis_load_servo_manager();
     HAL_Delay(CHASSIS_STEER_MOTOR_CONTROL_TIME_MS);
 
 #if CHASSIS_TEST_MODE
@@ -263,6 +269,27 @@ float abs_angle_pid_calc(pid_struct_t *pid, float target_ecd, float feedback_ecd
   pid->output = pid->p_out + pid->i_out + pid->d_out;
   LIMIT_MIN_MAX(pid->output, -pid->out_max, pid->out_max);
   return pid->output;
+}
+
+/**
+ * @brief Turn on servo motor to help trigger motor
+ */
+void chassis_load_servo_manager(void)
+{
+  if (fLoadServoOn)
+  {
+    static uint16_t uiPeriodicCounter = 0;
+    if (uiPeriodicCounter >= 2*CHASSIS_LOAD_SERVO_HALF_PERIOD)
+    {
+      uiPeriodicCounter = 0;
+    }
+    else
+    {
+      uiPeriodicCounter++;
+    }
+    uint16_t duty_cycle = CHASSIS_LOAD_SERVO_MAX_DUTY_CYCLE - fabs((CHASSIS_LOAD_SERVO_MAX_DUTY_CYCLE - CHASSIS_LOAD_SERVO_MIN_DUTY_CYCLE) / CHASSIS_LOAD_SERVO_HALF_PERIOD * (uiPeriodicCounter - CHASSIS_LOAD_SERVO_HALF_PERIOD));
+    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, duty_cycle);
+  }
 }
 /* USER CODE END 4 */
 
