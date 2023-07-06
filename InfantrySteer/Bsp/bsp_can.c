@@ -59,7 +59,7 @@ void can_user_init(void)
 
   // Receive only message from Type C Board
   can_filter.FilterIdHigh  = (CAN_CHASSIS_CONTROLLER_RX_ID | CAN_CHASSIS_LOAD_SERVO_TX_ID) << 5; // refer to https://schulz-m.github.io/2017/03/23/stm32-can-id-filter/
-  can_filter.FilterMaskIdHigh = 0xFFFF;
+  can_filter.FilterMaskIdHigh = (0xFFE << 5) | 0x1F;
   can_filter.FilterMaskIdLow  = 0xFFFF;
   can_filter.SlaveStartFilterBank = 14;
   can_filter.FilterBank = 14;
