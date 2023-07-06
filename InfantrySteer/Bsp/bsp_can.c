@@ -24,6 +24,7 @@
 typedef enum
 {
   CAN_CHASSIS_CONTROLLER_RX_ID = 0x112,
+  CAN_CHASSIS_LOAD_SERVO_TX_ID = 0x113,
   CAN_CHASSIS_GM6020_TX_ID = 0x1FF,
 
   CAN_6020_M1_ID = 0x205,
@@ -33,6 +34,7 @@ typedef enum
 } can_msg_id_e;
 
 moto_info_t motor_info[STEER_MOTOR_COUNT];
+uint8_t fLoadServoOn = 0;
 
 /**
   * @brief  init can filter, start can, enable can rx interrupt
@@ -56,8 +58,8 @@ void can_user_init(void)
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); // enable can1 rx interrupt
 
   // Receive only message from Type C Board
-  can_filter.FilterIdHigh  = CAN_CHASSIS_CONTROLLER_RX_ID << 5; // refer to https://schulz-m.github.io/2017/03/23/stm32-can-id-filter/
-  can_filter.FilterMaskIdHigh = 0xFFFF;
+  can_filter.FilterIdHigh  = (CAN_CHASSIS_CONTROLLER_RX_ID | CAN_CHASSIS_LOAD_SERVO_TX_ID) << 5; // refer to https://schulz-m.github.io/2017/03/23/stm32-can-id-filter/
+  can_filter.FilterMaskIdHigh = (0xFFE << 5) | 0x1F;
   can_filter.FilterMaskIdLow  = 0xFFFF;
   can_filter.SlaveStartFilterBank = 14;
   can_filter.FilterBank = 14;
@@ -113,12 +115,24 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   }
   else if(hcan->Instance == CAN2)
   {
-    // CAN_CHASSIS_CONTROLLER_RX_ID is set in filter, so no need to check
-    for (index = 0; index < STEER_MOTOR_COUNT; index++)
+    // Note: CAN_CHASSIS_CONTROLLER_RX_ID and CAN_CHASSIS_LOAD_SERVO_TX_ID are set in filter
+    if (rx_header.StdId == CAN_CHASSIS_CONTROLLER_RX_ID)
     {
-      motor_info[index].target_ecd = ((rx_data[2*index] << 8) | rx_data[2*index+1]);
+      for (index = 0; index < STEER_MOTOR_COUNT; index++)
+      {
+        motor_info[index].target_ecd = ((rx_data[2 * index] << 8) | rx_data[2 * index + 1]);
+      }
+      // target_ecd1 = loop_ecd_constrain_test(motor_info[0].target_ecd);
     }
-    // target_ecd1 = loop_ecd_constrain_test(motor_info[0].target_ecd);
+    else if (rx_header.StdId == CAN_CHASSIS_LOAD_SERVO_TX_ID)
+    {
+      fLoadServoOn = rx_data[0];
+    }
+    else
+    {
+      // Should not reach here
+      Error_Handler();
+    }
   }
 }
 

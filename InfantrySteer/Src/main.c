@@ -41,7 +41,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "can.h"
+#include "tim.h"
 #include "gpio.h"
+#include "math.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -86,6 +88,13 @@
 #define M6020_MOTOR_3_ANGLE_ECD_OFFSET 2827U
 #endif
 
+#define CHASSIS_LOAD_SERVO_HALF_PERIOD_MS 2000.0f
+#define CHASSIS_LOAD_SERVO_HALF_PERIOD_TICKS (CHASSIS_LOAD_SERVO_HALF_PERIOD_MS / CHASSIS_CONTROL_TIME_MS)
+// Timer 2 resolution is set to be micro second
+// Servo motor: (Miuzei 20kg) https://www.amazon.com/Miuzei-Torque-Digital-Waterproof-Control/dp/B07HNTKSZT
+#define CHASSIS_LOAD_SERVO_MIN_DUTY_CYCLE 833.0f // 90 deg
+#define CHASSIS_LOAD_SERVO_MAX_DUTY_CYCLE 1500.0f
+
 #define CHASSIS_TEST_MODE 1
 /* USER CODE END PM */
 
@@ -94,13 +103,14 @@
 /* USER CODE BEGIN PV */
 extern moto_info_t motor_info[STEER_MOTOR_COUNT];
 pid_struct_t motor_pid[STEER_MOTOR_COUNT];
+extern uint8_t fLoadServoOn;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-float abs_angle_pid_calc(pid_struct_t *pid, float target_ecd, float feedback_ecd);
 /* USER CODE BEGIN PFP */
-
+float abs_angle_pid_calc(pid_struct_t *pid, float target_ecd, float feedback_ecd);
+void chassis_load_servo_manager(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -147,7 +157,10 @@ int main(void)
   MX_GPIO_Init();
   MX_CAN1_Init();
   MX_CAN2_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_1);
+
   HAL_GPIO_WritePin(GPIOH, POWER1_CTRL_Pin | POWER2_CTRL_Pin | POWER3_CTRL_Pin | POWER4_CTRL_Pin, GPIO_PIN_SET); // switch on 24v power
   can_user_init();                                                                                               // config can filter, start can
   const static uint16_t steer_motor_offset_ecd[4] = {M6020_MOTOR_0_ANGLE_ECD_OFFSET, M6020_MOTOR_1_ANGLE_ECD_OFFSET, M6020_MOTOR_2_ANGLE_ECD_OFFSET, M6020_MOTOR_3_ANGLE_ECD_OFFSET};
@@ -162,18 +175,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
     for (uint8_t i = 0; i < STEER_MOTOR_COUNT; i++)
     {
       motor_info[i].set_voltage = abs_angle_pid_calc(&motor_pid[i], (float)motor_info[i].target_ecd, (float)motor_info[i].feedback_ecd - (float)motor_info[i].offset_ecd);
     }
     /* send motor control message through can bus*/
     CAN_cmd_steer_motors(0, motor_info[0].set_voltage, motor_info[1].set_voltage, motor_info[2].set_voltage, motor_info[3].set_voltage);
+    chassis_load_servo_manager();
     HAL_Delay(CHASSIS_STEER_MOTOR_CONTROL_TIME_MS);
 
 #if CHASSIS_TEST_MODE
     J_scope_pid_test();
 #endif
+    /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -263,6 +277,27 @@ float abs_angle_pid_calc(pid_struct_t *pid, float target_ecd, float feedback_ecd
   pid->output = pid->p_out + pid->i_out + pid->d_out;
   LIMIT_MIN_MAX(pid->output, -pid->out_max, pid->out_max);
   return pid->output;
+}
+
+/**
+ * @brief Turn on servo motor to help trigger motor
+ */
+void chassis_load_servo_manager(void)
+{
+  if (fLoadServoOn)
+  {
+    static uint16_t uiPeriodicCounter = 0;
+    if (uiPeriodicCounter >= 2*CHASSIS_LOAD_SERVO_HALF_PERIOD_TICKS)
+    {
+      uiPeriodicCounter = 0;
+    }
+    else
+    {
+      uiPeriodicCounter++;
+    }
+    uint16_t duty_cycle = CHASSIS_LOAD_SERVO_MAX_DUTY_CYCLE - fabs((CHASSIS_LOAD_SERVO_MAX_DUTY_CYCLE - CHASSIS_LOAD_SERVO_MIN_DUTY_CYCLE) / CHASSIS_LOAD_SERVO_HALF_PERIOD_TICKS * (uiPeriodicCounter - CHASSIS_LOAD_SERVO_HALF_PERIOD_TICKS));
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty_cycle);
+  }
 }
 /* USER CODE END 4 */
 
