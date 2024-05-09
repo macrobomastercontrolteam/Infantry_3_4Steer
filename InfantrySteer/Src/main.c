@@ -64,7 +64,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 #define CHASSIS_CONTROL_TIME_MS 2
-#define CHASSIS_STEER_MOTOR_CONTROL_TIME_MS (CHASSIS_CONTROL_TIME_MS / 2) // faster turning control
+#define CHASSIS_STEER_MOTOR_CONTROL_TIME_MS (CHASSIS_CONTROL_TIME_MS)
 
 #define M6020_MOTOR_ANGLE_PID_KP 80.0f
 #define M6020_MOTOR_ANGLE_PID_KI 1.5f
