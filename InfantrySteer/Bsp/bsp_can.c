@@ -16,6 +16,9 @@
  ***************************************************************************/
  
 #include "bsp_can.h"
+#include "string.h"
+
+#define DISABLE_STEER_MOTOR 0
 
 /* CAN send and receive ID */
 typedef enum
@@ -33,6 +36,8 @@ typedef enum
 
 moto_info_t motor_info[STEER_MOTOR_COUNT];
 uint8_t fLoadServoOn = 0;
+uint8_t fSteerMotorEnabled = 0;
+uint8_t abAllFF[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 /**
   * @brief  init can filter, start can, enable can rx interrupt
@@ -133,9 +138,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     // Note: CAN_CHASSIS_CONTROLLER_RX_ID and CAN_CHASSIS_LOAD_SERVO_TX_ID are set in filter
     if (rx_header.StdId == CAN_CHASSIS_CONTROLLER_RX_ID)
     {
-      for (index = 0; index < STEER_MOTOR_COUNT; index++)
+      fSteerMotorEnabled = (memcmp(rx_data, abAllFF, sizeof(abAllFF)) != 0);
+      if (fSteerMotorEnabled)
       {
-        motor_info[index].target_ecd = ((rx_data[2 * index] << 8) | rx_data[2 * index + 1]);
+        for (index = 0; index < STEER_MOTOR_COUNT; index++)
+        {
+          motor_info[index].target_ecd = ((rx_data[2 * index] << 8) | rx_data[2 * index + 1]);
+        }
       }
     }
     else if (rx_header.StdId == CAN_CHASSIS_LOAD_SERVO_TX_ID)
@@ -164,6 +173,16 @@ void CAN_cmd_steer_motors(uint8_t id_range, int16_t v1, int16_t v2, int16_t v3, 
   tx_header.IDE = CAN_ID_STD;
   tx_header.RTR = CAN_RTR_DATA;
   tx_header.DLC = 8;
+
+#if (DISABLE_STEER_MOTOR == 0)
+  if (fSteerMotorEnabled == 0)
+#endif
+  {
+    v1 = 0;
+    v2 = 0;
+    v3 = 0;
+    v4 = 0;
+  }
 
   // tx_data[0] = v1 >> 8;
   // tx_data[1] = v1;
