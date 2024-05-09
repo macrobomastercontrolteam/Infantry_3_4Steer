@@ -24,10 +24,11 @@ typedef enum
   CAN_CHASSIS_LOAD_SERVO_TX_ID = 0x113,
   CAN_CHASSIS_GM6020_TX_ID = 0x1FF,
 
-  CAN_6020_M1_ID = 0x205,
+  // id is messed up because we made a mistake with endianess in 6060's ID config
+  CAN_6020_M1_ID = 0x208,
   CAN_6020_M2_ID = 0x206,
   CAN_6020_M3_ID = 0x207,
-  CAN_6020_M4_ID = 0x208,
+  CAN_6020_M4_ID = 0x205,
 } can_msg_id_e;
 
 moto_info_t motor_info[STEER_MOTOR_COUNT];
@@ -94,15 +95,33 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
   CAN_RxHeaderTypeDef rx_header;
   uint8_t             rx_data[8];
-  uint8_t             index;
+  uint8_t             index = 0xFF;
 
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data); //receive can data
 
   if(hcan->Instance == CAN1)
   {
-    if ((rx_header.StdId >= CAN_6020_M1_ID) && (rx_header.StdId <=  CAN_6020_M4_ID))
+    // get motor index by can_id
+    switch (rx_header.StdId)
     {
-      index = rx_header.StdId - CAN_6020_M1_ID;                  // get motor index by can_id
+      case CAN_6020_M1_ID:
+        index = 0;
+        break;
+      case CAN_6020_M2_ID:
+        index = 1;
+        break;
+      case CAN_6020_M3_ID:
+        index = 2;
+        break;
+      case CAN_6020_M4_ID:
+        index = 3;
+        break;
+      default:
+        break;
+    }
+
+    if (index != 0xFF)
+    {
       motor_info[index].feedback_ecd    = ((rx_data[0] << 8) | rx_data[1]);
       // motor_info[index].rotor_speed    = ((rx_data[2] << 8) | rx_data[3]);
       // motor_info[index].torque_current = ((rx_data[4] << 8) | rx_data[5]);
@@ -146,13 +165,24 @@ void CAN_cmd_steer_motors(uint8_t id_range, int16_t v1, int16_t v2, int16_t v3, 
   tx_header.RTR = CAN_RTR_DATA;
   tx_header.DLC = 8;
 
-  tx_data[0] = v1 >> 8;
-  tx_data[1] = v1;
+  // tx_data[0] = v1 >> 8;
+  // tx_data[1] = v1;
+  // tx_data[2] = v2 >> 8;
+  // tx_data[3] = v2;
+  // tx_data[4] = v3 >> 8;
+  // tx_data[5] = v3;
+  // tx_data[6] = v4 >> 8;
+  // tx_data[7] = v4;
+  // HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,(uint32_t*)CAN_TX_MAILBOX0);
+
+  // id is messed up because we made a mistake with endianess in 6060's ID config
+  tx_data[0] = v4 >> 8;
+  tx_data[1] = v4;
   tx_data[2] = v2 >> 8;
   tx_data[3] = v2;
   tx_data[4] = v3 >> 8;
   tx_data[5] = v3;
-  tx_data[6] = v4 >> 8;
-  tx_data[7] = v4;
+  tx_data[6] = v1 >> 8;
+  tx_data[7] = v1;
   HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,(uint32_t*)CAN_TX_MAILBOX0);
 }
