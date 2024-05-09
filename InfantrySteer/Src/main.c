@@ -77,10 +77,10 @@
 #define M6020_INSTALLATION_DIRECTION_FLIP 1
 
 #if defined(M6020_INSTALLATION_DIRECTION_FLIP)
-#define M6020_MOTOR_0_ANGLE_ECD_OFFSET ((1662U + HALF_ECD_RANGE) % ECD_RANGE)
-#define M6020_MOTOR_1_ANGLE_ECD_OFFSET ((3742U + HALF_ECD_RANGE) % ECD_RANGE)
-#define M6020_MOTOR_2_ANGLE_ECD_OFFSET ((5720U + HALF_ECD_RANGE) % ECD_RANGE)
-#define M6020_MOTOR_3_ANGLE_ECD_OFFSET ((2827U + HALF_ECD_RANGE) % ECD_RANGE)
+#define M6020_MOTOR_0_ANGLE_ECD_OFFSET ((1662U + ECD_RANGE_180) % ECD_RANGE_360)
+#define M6020_MOTOR_1_ANGLE_ECD_OFFSET ((3742U + ECD_RANGE_180) % ECD_RANGE_360)
+#define M6020_MOTOR_2_ANGLE_ECD_OFFSET ((5720U + ECD_RANGE_180) % ECD_RANGE_360)
+#define M6020_MOTOR_3_ANGLE_ECD_OFFSET ((2827U + ECD_RANGE_180) % ECD_RANGE_360)
 #else
 #define M6020_MOTOR_0_ANGLE_ECD_OFFSET 1662U
 #define M6020_MOTOR_1_ANGLE_ECD_OFFSET 3742U
@@ -236,20 +236,20 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /**
- * @brief Constrain ecd to range [-HALF_ECD_RANGE,HALF_ECD_RANGE]
+ * @brief Constrain ecd to range [-ECD_RANGE_180,ECD_RANGE_180]
  */
 float loop_ecd_constrain(float Input)
 {
-  if (Input > HALF_ECD_RANGE)
+  if (Input > ECD_RANGE_180)
   {
-    while (Input > HALF_ECD_RANGE)
+    while (Input > ECD_RANGE_180)
     {
       Input -= ECD_RANGE;
     }
   }
-  else if (Input < -HALF_ECD_RANGE)
+  else if (Input < -ECD_RANGE_180)
   {
-    while (Input < -HALF_ECD_RANGE)
+    while (Input < -ECD_RANGE_180)
     {
       Input += ECD_RANGE;
     }
@@ -260,8 +260,8 @@ float loop_ecd_constrain(float Input)
 /**
   * @brief  pid calculation
   * @param  pid struct
-    @param  target_ecd encoder range [-HALF_ECD_RANGE, HALF_ECD_RANGE]
-    @param  feedback_ecd encoder range [-HALF_ECD_RANGE, HALF_ECD_RANGE]
+    @param  target_ecd encoder range [-ECD_RANGE_180, ECD_RANGE_180]
+    @param  feedback_ecd encoder range [-ECD_RANGE_180, ECD_RANGE_180]
   * @retval calculation result
   */
 float abs_angle_pid_calc(pid_struct_t *pid, float target_ecd, float feedback_ecd)
