@@ -24,8 +24,10 @@
 #define CAN_CONTROL_ID_EXTEND 0x2ff
 #define STEER_MOTOR_COUNT     4
 
-#define HALF_ECD_RANGE 4096
-#define ECD_RANGE 8192
+#define ECD_RANGE 8192 // 360 degree
+#define ECD_RANGE_180 4096 // 180 degree
+#define ECD_RANGE_90 2048 // 90 degree
+#define ECD_RANGE_45 1024 // 45 degree
 #define MOTOR_ECD_TO_RAD 0.000766990394f // (2*PI)/8192
 
 typedef struct

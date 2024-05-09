@@ -70,16 +70,16 @@ void can_user_init(void)
 
 // float loop_ecd_constrain_test(float Input)
 // {
-//   if (Input > HALF_ECD_RANGE)
+//   if (Input > ECD_RANGE_180)
 //   {
-//     while (Input > HALF_ECD_RANGE)
+//     while (Input > ECD_RANGE_180)
 //     {
 //       Input -= ECD_RANGE;
 //     }
 //   }
-//   else if (Input < -HALF_ECD_RANGE)
+//   else if (Input < -ECD_RANGE_180)
 //   {
-//     while (Input < -HALF_ECD_RANGE)
+//     while (Input < -ECD_RANGE_180)
 //     {
 //       Input += ECD_RANGE;
 //     }
