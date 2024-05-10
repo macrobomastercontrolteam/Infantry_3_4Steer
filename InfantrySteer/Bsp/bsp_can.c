@@ -34,7 +34,7 @@ typedef enum
   CAN_6020_M4_ID = 0x205,
 } can_msg_id_e;
 
-moto_info_t motor_info[STEER_MOTOR_COUNT];
+motor_info_t motor_info[STEER_MOTOR_COUNT];
 uint8_t fLoadServoOn = 0;
 uint8_t fSteerMotorEnabled = 0;
 uint8_t abAllFF[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};

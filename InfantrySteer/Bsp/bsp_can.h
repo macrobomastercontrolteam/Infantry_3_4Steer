@@ -39,7 +39,7 @@ typedef struct
     // int16_t  rotor_speed;
     // int16_t  torque_current;
     // uint8_t  temperature;
-}moto_info_t;
+} motor_info_t;
 
 extern uint8_t fLoadServoOn;
 extern motor_info_t motor_info[STEER_MOTOR_COUNT];
