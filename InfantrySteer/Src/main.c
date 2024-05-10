@@ -98,9 +98,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern moto_info_t motor_info[STEER_MOTOR_COUNT];
 pid_struct_t motor_pid[STEER_MOTOR_COUNT];
-extern uint8_t fLoadServoOn;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

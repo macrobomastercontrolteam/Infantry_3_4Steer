@@ -41,6 +41,9 @@ typedef struct
     // uint8_t  temperature;
 }moto_info_t;
 
+extern uint8_t fLoadServoOn;
+extern motor_info_t motor_info[STEER_MOTOR_COUNT];
+
 void can_user_init(void);
 void CAN_cmd_steer_motors(uint8_t id_range, int16_t v1, int16_t v2, int16_t v3, int16_t v4);
 #endif
