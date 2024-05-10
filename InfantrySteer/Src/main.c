@@ -106,6 +106,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 float abs_angle_pid_calc(pid_struct_t *pid, float target_ecd, float feedback_ecd);
 void chassis_load_servo_manager(void);
+float loop_ecd_constrain(float Input);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -116,7 +117,7 @@ float target_ecd_float;
 static void J_scope_pid_test(void)
 {
   uint8_t motor_id = 0;
-  feedback_ecd_float = motor_info[motor_id].feedback_ecd - motor_info[motor_id].offset_ecd;
+  feedback_ecd_float = loop_ecd_constrain((float)motor_info[motor_id].feedback_ecd - (float)motor_info[motor_id].offset_ecd);
   target_ecd_float = motor_info[motor_id].target_ecd;
 }
 #endif

@@ -71,25 +71,6 @@ void can_user_init(void)
   HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
 }
 
-// float loop_ecd_constrain_test(float Input)
-// {
-//   if (Input > ECD_RANGE_180)
-//   {
-//     while (Input > ECD_RANGE_180)
-//     {
-//       Input -= ECD_RANGE;
-//     }
-//   }
-//   else if (Input < -ECD_RANGE_180)
-//   {
-//     while (Input < -ECD_RANGE_180)
-//     {
-//       Input += ECD_RANGE;
-//     }
-//   }
-//   return Input;
-// }
-
 /**
   * @brief  can rx callback, get motor feedback info
   * @param  hcan pointer to a CAN_HandleTypeDef structure that contains
