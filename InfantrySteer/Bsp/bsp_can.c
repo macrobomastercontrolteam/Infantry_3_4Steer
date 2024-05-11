@@ -60,9 +60,12 @@ void can_user_init(void)
   HAL_CAN_Start(&hcan1);                          // start can1
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); // enable can1 rx interrupt
 
-  // Receive only message from Type C Board
-  can_filter.FilterIdHigh  = (CAN_CHASSIS_CONTROLLER_RX_ID | CAN_CHASSIS_LOAD_SERVO_TX_ID) << 5; // refer to https://schulz-m.github.io/2017/03/23/stm32-can-id-filter/
-  can_filter.FilterMaskIdHigh = (0xFFE << 5) | 0x1F;
+  // CAN filter setup refer to https://schulz-m.github.io/2017/03/23/stm32-can-id-filter/
+  uint32_t filter_id = (CAN_STEER_CONTROLLER_RX_ID | CAN_CHASSIS_LOAD_SERVO_RX_ID | CAN_HIP_CONTROLLER_RX_ID);
+  // Receive only the specified IDs
+  uint32_t filter_mask = 0x1FFFFFFF & (~(CAN_STEER_CONTROLLER_RX_ID ^ CAN_CHASSIS_LOAD_SERVO_RX_ID)) & (~(CAN_STEER_CONTROLLER_RX_ID ^ CAN_HIP_CONTROLLER_RX_ID));
+  can_filter.FilterIdHigh  = ((filter_id << 5)  | (filter_id >> (32 - 5))) & 0xFFFF; // STID[10:0] & EXTID[17:13]
+  can_filter.FilterMaskIdHigh = ((filter_mask << 5)  | (filter_mask >> (32 - 5))) & 0xFFFF;
   can_filter.FilterMaskIdLow  = 0xFFFF;
   can_filter.SlaveStartFilterBank = 14;
   can_filter.FilterBank = 14;
