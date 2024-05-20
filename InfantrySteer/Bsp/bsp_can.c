@@ -18,7 +18,7 @@
 #include "bsp_can.h"
 #include "string.h"
 
-#define DISABLE_STEER_MOTOR 0
+#define DISABLE_STEER_MOTOR 1
 #define DISABLE_HIP_MOTOR 1
 
 // reverse hip motor direction
