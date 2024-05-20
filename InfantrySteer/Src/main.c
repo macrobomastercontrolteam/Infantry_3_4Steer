@@ -74,16 +74,37 @@
 #define M6020_MOTOR_ANGLE_PID_MAX_OUT MAX_MOTOR_CAN_VOLTAGE
 #define M6020_MOTOR_ANGLE_PID_MAX_IOUT 10000.0f
 
-// Example calculation
-#define M6020_MOTOR_0_ANGLE_ECD_OF_LIMITER 4573U
-#define M6020_MOTOR_1_ANGLE_ECD_OF_LIMITER 662U
-#define M6020_MOTOR_2_ANGLE_ECD_OF_LIMITER 7515U
-#define M6020_MOTOR_3_ANGLE_ECD_OF_LIMITER 7375U
+// #define MG6012_MOTOR_SPEED_PID_KP 80.0f
+// #define MG6012_MOTOR_SPEED_PID_KI 1.5f
+// #define MG6012_MOTOR_SPEED_PID_KD 2.5f
+// // chassis 6020 max motor control voltage
+// #define MAX_MOTOR_CAN_VOLTAGE 20000.0f
+// #define MG6012_MOTOR_SPEED_PID_MAX_OUT MAX_MOTOR_CAN_VOLTAGE
+// #define MG6012_MOTOR_SPEED_PID_MAX_IOUT 10000.0f
 
-#define M6020_MOTOR_0_ANGLE_ECD_OFFSET ((M6020_MOTOR_0_ANGLE_ECD_OF_LIMITER + ECD_RANGE_45 + ECD_RANGE_180) % ECD_RANGE)
-#define M6020_MOTOR_1_ANGLE_ECD_OFFSET ((M6020_MOTOR_1_ANGLE_ECD_OF_LIMITER - ECD_RANGE_45 + ECD_RANGE_180) % ECD_RANGE)
-#define M6020_MOTOR_2_ANGLE_ECD_OFFSET ((M6020_MOTOR_2_ANGLE_ECD_OF_LIMITER + ECD_RANGE_45) % ECD_RANGE)
-#define M6020_MOTOR_3_ANGLE_ECD_OFFSET ((M6020_MOTOR_3_ANGLE_ECD_OF_LIMITER - ECD_RANGE_45) % ECD_RANGE)
+// #define MG6012_MOTOR_ACCEL_PID_KP 80.0f
+// #define MG6012_MOTOR_ACCEL_PID_KI 1.5f
+// #define MG6012_MOTOR_ACCEL_PID_KD 2.5f
+// // chassis 6020 max motor control voltage
+// #define MAX_MOTOR_CAN_VOLTAGE 20000.0f
+// #define MG6012_MOTOR_ACCEL_PID_MAX_OUT MAX_MOTOR_CAN_VOLTAGE
+// #define MG6012_MOTOR_ACCEL_PID_MAX_IOUT 10000.0f
+
+// Calibrate with the 45 degree position
+// #define M6020_MOTOR_0_ANGLE_ECD_OF_LIMITER 4778U
+// #define M6020_MOTOR_1_ANGLE_ECD_OF_LIMITER 4592U
+// #define M6020_MOTOR_2_ANGLE_ECD_OF_LIMITER 3225U
+// #define M6020_MOTOR_3_ANGLE_ECD_OF_LIMITER 3051U
+
+// #define M6020_MOTOR_0_ANGLE_ECD_OFFSET ((M6020_MOTOR_0_ANGLE_ECD_OF_LIMITER + ECD_RANGE_45) % ECD_RANGE)
+// #define M6020_MOTOR_1_ANGLE_ECD_OFFSET ((M6020_MOTOR_1_ANGLE_ECD_OF_LIMITER - ECD_RANGE_45) % ECD_RANGE)
+// #define M6020_MOTOR_2_ANGLE_ECD_OFFSET ((M6020_MOTOR_2_ANGLE_ECD_OF_LIMITER + ECD_RANGE_45) % ECD_RANGE)
+// #define M6020_MOTOR_3_ANGLE_ECD_OFFSET ((M6020_MOTOR_3_ANGLE_ECD_OF_LIMITER - ECD_RANGE_45) % ECD_RANGE)
+
+#define M6020_MOTOR_0_ANGLE_ECD_OFFSET 5878U
+#define M6020_MOTOR_1_ANGLE_ECD_OFFSET 7666U
+#define M6020_MOTOR_2_ANGLE_ECD_OFFSET 59U
+#define M6020_MOTOR_3_ANGLE_ECD_OFFSET 1943U
 
 #define CHASSIS_LOAD_SERVO_HALF_PERIOD_MS 2000.0f
 #define CHASSIS_LOAD_SERVO_HALF_PERIOD_TICKS (CHASSIS_LOAD_SERVO_HALF_PERIOD_MS / CHASSIS_CONTROL_TIME_MS)
@@ -98,7 +119,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-pid_struct_t motor_pid[STEER_MOTOR_COUNT];
+pid_struct_t motor_pid[CHASSIS_ID_LAST];
+pid_struct_t hip_speed_pid[HIP_MOTOR_COUNT];
+pid_struct_t hip_accel_pid[HIP_MOTOR_COUNT];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -112,13 +135,11 @@ float loop_ecd_constrain(float Input);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #if CHASSIS_TEST_MODE
-float feedback_ecd_float;
-float target_ecd_float;
+float diff_ecd_float;
 static void J_scope_pid_test(void)
 {
   uint8_t motor_id = 0;
-  feedback_ecd_float = loop_ecd_constrain((float)motor_info[motor_id].feedback_ecd - (float)motor_info[motor_id].offset_ecd);
-  target_ecd_float = motor_info[motor_id].target_ecd;
+  diff_ecd_float = loop_ecd_constrain((float)motor_info[motor_id].feedback_ecd - (float)motor_info[motor_id].offset_ecd);
 }
 #endif
 /* USER CODE END 0 */
@@ -165,6 +186,13 @@ int main(void)
     pid_init(&motor_pid[i], M6020_MOTOR_ANGLE_PID_KP, M6020_MOTOR_ANGLE_PID_KI, M6020_MOTOR_ANGLE_PID_KD, M6020_MOTOR_ANGLE_PID_MAX_IOUT, M6020_MOTOR_ANGLE_PID_MAX_OUT);
     motor_info[i].offset_ecd = steer_motor_offset_ecd[i];
   }
+
+  // for (uint8_t i = 0; i < HIP_MOTOR_COUNT + 1; i++)
+  // {
+  //   pid_init(&hip_speed_pid[i], M6020_MOTOR_ANGLE_PID_KP, M6020_MOTOR_ANGLE_PID_KI, M6020_MOTOR_ANGLE_PID_KD, M6020_MOTOR_ANGLE_PID_MAX_IOUT, M6020_MOTOR_ANGLE_PID_MAX_OUT);
+  //   pid_init(&hip_accel_pid[i], M6020_MOTOR_ANGLE_PID_KP, M6020_MOTOR_ANGLE_PID_KI, M6020_MOTOR_ANGLE_PID_KD, M6020_MOTOR_ANGLE_PID_MAX_IOUT, M6020_MOTOR_ANGLE_PID_MAX_OUT);
+  //   motor_info[i].offset_ecd = steer_motor_offset_ecd[i];
+  // }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -176,9 +204,11 @@ int main(void)
       motor_info[i].set_voltage = abs_angle_pid_calc(&motor_pid[i], (float)motor_info[i].target_ecd, (float)motor_info[i].feedback_ecd - (float)motor_info[i].offset_ecd);
     }
     /* send motor control message through can bus*/
-    CAN_cmd_steer_motors(0, motor_info[0].set_voltage, motor_info[1].set_voltage, motor_info[2].set_voltage, motor_info[3].set_voltage);
-    chassis_load_servo_manager();
-    HAL_Delay(CHASSIS_STEER_MOTOR_CONTROL_TIME_MS);
+    CAN_cmd_steer_motors(0, motor_info[CHASSIS_ID_STEER_1 + 0].set_voltage, motor_info[CHASSIS_ID_STEER_1 + 1].set_voltage, motor_info[CHASSIS_ID_STEER_1 + 2].set_voltage, motor_info[CHASSIS_ID_STEER_1 + 3].set_voltage);
+    HAL_Delay(2);
+    CAN_cmd_hip_motors(motor_info[CHASSIS_ID_HIP_1 + 0].set_torque, motor_info[CHASSIS_ID_HIP_1 + 1].set_torque, motor_info[CHASSIS_ID_HIP_1 + 2].set_torque, motor_info[CHASSIS_ID_HIP_1 + 3].set_torque);
+    // chassis_load_servo_manager();
+    HAL_Delay(1);
 
 #if CHASSIS_TEST_MODE
     J_scope_pid_test();
