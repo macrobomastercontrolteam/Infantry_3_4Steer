@@ -50,11 +50,10 @@ typedef enum
   CAN_HIP_MOTOR_SINGLECMD_TX_ID = 0x140,
 	CAN_HIP_MOTOR_MULTICMD_TX_ID = 0x280,
 
-  // id is messed up because we made a mistake with endianess in 6060's ID config
-  CAN_STEER1_RX_ID = 0x208,
+  CAN_STEER1_RX_ID = 0x205,
   CAN_STEER2_RX_ID = 0x206,
   CAN_STEER3_RX_ID = 0x207,
-  CAN_STEER4_RX_ID = 0x205,
+  CAN_STEER4_RX_ID = 0x208,
 
   // 6012 motor as hip
 	CAN_HIP1_RX_ID = 0x141,
@@ -374,24 +373,13 @@ void CAN_cmd_steer_motors(uint8_t id_range, int16_t voltage1, int16_t voltage2, 
     voltage4 = 0;
   }
 
-  // tx_data[0] = voltage1 >> 8;
-  // tx_data[1] = voltage1;
-  // tx_data[2] = voltage2 >> 8;
-  // tx_data[3] = voltage2;
-  // tx_data[4] = voltage3 >> 8;
-  // tx_data[5] = voltage3;
-  // tx_data[6] = voltage4 >> 8;
-  // tx_data[7] = voltage4;
-  // HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,(uint32_t*)CAN_TX_MAILBOX0);
-
-  // id is messed up because we made a mistake with endianess in 6060's ID config
-  tx_data[0] = voltage4 >> 8;
-  tx_data[1] = voltage4;
+  tx_data[0] = voltage1 >> 8;
+  tx_data[1] = voltage1;
   tx_data[2] = voltage2 >> 8;
   tx_data[3] = voltage2;
   tx_data[4] = voltage3 >> 8;
   tx_data[5] = voltage3;
-  tx_data[6] = voltage1 >> 8;
-  tx_data[7] = voltage1;
-  HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,(uint32_t*) CAN_TX_MAILBOX0);
+  tx_data[6] = voltage4 >> 8;
+  tx_data[7] = voltage4;
+  HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,(uint32_t*)CAN_TX_MAILBOX0);
 }
