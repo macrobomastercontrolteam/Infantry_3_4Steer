@@ -133,27 +133,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 	  switch (rx_header.StdId)
 	  {
 		  case CAN_STEER1_RX_ID:
-		  {
-			  bMotorId = 0;
-        decode_6020_motor_feedback(rx_data, bMotorId);
-			  break;
-		  }
 		  case CAN_STEER2_RX_ID:
-		  {
-			  bMotorId = 1;
-        decode_6020_motor_feedback(rx_data, bMotorId);
-			  break;
-		  }
 		  case CAN_STEER3_RX_ID:
-		  {
-			  bMotorId = 2;
-        decode_6020_motor_feedback(rx_data, bMotorId);
-			  break;
-		  }
 		  case CAN_STEER4_RX_ID:
 		  {
-			  bMotorId = 3;
-        decode_6020_motor_feedback(rx_data, bMotorId);
+			  bMotorId = rx_header.StdId - CAN_STEER1_RX_ID + CHASSIS_ID_STEER_1;
+			  decode_6020_motor_feedback(rx_data, bMotorId);
 			  break;
 		  }
       case CAN_HIP1_RX_ID:
