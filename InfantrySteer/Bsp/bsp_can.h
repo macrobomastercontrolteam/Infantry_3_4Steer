@@ -32,7 +32,7 @@
 #define ECD_RANGE_45 1024 // 45 degree
 #define MOTOR_ECD_TO_RAD (PI / (fp32)(ECD_RANGE_180))
 
-typedef struct __attribute__((packed))
+typedef struct
 {
 	float set_torque;
 	float output_angle;
